@@ -14,16 +14,17 @@ class RadarLabeler:
         self.image_list = []
         self.current_idx = -1
         self.image_path = None
-        self.orig_img = None  # Store original PIL Image for clean scaling
+        self.orig_img = None  
         self.tk_image = None
         self.img_width = 0
         self.img_height = 0
-        self.scale = 1.0      # Zoom scale factor
+        self.scale = 1.0      
         
         # Annotation & Class State
         self.annotations = []
         self.current_id = 1
-        self.categories = {}  # {1: "Car", 2: "Pedestrian", ...}
+        self.categories = {}  
+        self.is_dirty = False # Tracks unsaved changes
         
         # Drawing State
         self.start_raw_x = None
@@ -45,10 +46,11 @@ class RadarLabeler:
         tk.Button(control_frame, text="<< Prev (A)", command=self.prev_image).pack(side=tk.LEFT, padx=10)
         tk.Button(control_frame, text="Next (D) >>", command=self.next_image).pack(side=tk.LEFT, padx=0)
         
-        # Added fg="black" to control labels
-        tk.Label(control_frame, text="  Category ID:").pack(side=tk.LEFT, padx=5)
-        self.class_id_var = tk.IntVar(value=1)
-        tk.Entry(control_frame, textvariable=self.class_id_var, width=5).pack(side=tk.LEFT)
+        # UPDATED: Category Dropdown
+        tk.Label(control_frame, text="  Category:").pack(side=tk.LEFT, padx=5)
+        self.category_var = tk.StringVar(value="1 - Default")
+        self.category_combo = ttk.Combobox(control_frame, textvariable=self.category_var, state="readonly", width=15)
+        self.category_combo.pack(side=tk.LEFT)
         
         tk.Label(control_frame, text="  Mode:").pack(side=tk.LEFT, padx=5)
         self.mode_var = tk.StringVar(value="bbox")
@@ -57,13 +59,17 @@ class RadarLabeler:
         
         tk.Button(control_frame, text="Clear Last (L)", command=self.clear_last).pack(side=tk.RIGHT, padx=5)
 
+        # NEW: Unsaved changes indicator
+        self.status_label = tk.Label(control_frame, text="● Saved", fg="green", font=("Arial", 11, "bold"))
+        self.status_label.pack(side=tk.RIGHT, padx=15)
+
         # --- Main Layout (Canvas + Sidebar) ---
         self.main_pane = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         self.main_pane.pack(fill=tk.BOTH, expand=True)
 
         # Left side: Canvas
         canvas_container = tk.Frame(self.main_pane)
-        self.main_pane.add(canvas_container, weight=5) # Increased weight so canvas takes more space
+        self.main_pane.add(canvas_container, weight=5) 
         
         self.h_scroll = tk.Scrollbar(canvas_container, orient=tk.HORIZONTAL)
         self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
@@ -78,16 +84,15 @@ class RadarLabeler:
         self.v_scroll.config(command=self.canvas.yview)
 
         # Right side: Sidebar (Legend + Labels)
-        # Reduced initial width from 250 to 150
         self.sidebar = tk.Frame(self.main_pane, bg="#f0f0f0", width=150)
         self.main_pane.add(self.sidebar, weight=1)
 
-        # Legend section (Added fg="black")
+        # Legend section
         tk.Label(self.sidebar, text="Categories Legend", bg="#ddd", fg="black", font=("Arial", 10, "bold")).pack(fill=tk.X, pady=(0, 5))
         self.legend_frame = tk.Frame(self.sidebar, bg="#f0f0f0")
         self.legend_frame.pack(fill=tk.X, padx=5, pady=5)
 
-        # Labels List Section (Added fg="black")
+        # Labels List Section
         tk.Label(self.sidebar, text="Current Annotations", bg="#ddd", fg="black", font=("Arial", 10, "bold")).pack(fill=tk.X, pady=(10, 5))
         self.create_scrollable_sidebar()
 
@@ -96,14 +101,11 @@ class RadarLabeler:
         self.canvas.bind("<B1-Motion>", self.on_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_release)
         self.canvas.bind("<Button-3>", self.on_right_click)
-        
-        # Zoom bindings
-        self.canvas.bind("<MouseWheel>", self.zoom_mousewheel) # Windows/Mac
-        self.canvas.bind("<Button-4>", self.zoom_in)           # Linux up
-        self.canvas.bind("<Button-5>", self.zoom_out)          # Linux down
+        self.canvas.bind("<MouseWheel>", self.zoom_mousewheel) 
+        self.canvas.bind("<Button-4>", self.zoom_in)           
+        self.canvas.bind("<Button-5>", self.zoom_out)          
 
     def create_scrollable_sidebar(self):
-        # A scrollable frame for annotations
         self.labels_canvas = tk.Canvas(self.sidebar, bg="#f0f0f0", highlightthickness=0)
         scrollbar = tk.Scrollbar(self.sidebar, orient="vertical", command=self.labels_canvas.yview)
         self.labels_inner_frame = tk.Frame(self.labels_canvas, bg="#f0f0f0")
@@ -115,7 +117,6 @@ class RadarLabeler:
 
         self.labels_canvas.create_window((0, 0), window=self.labels_inner_frame, anchor="nw")
         self.labels_canvas.configure(yscrollcommand=scrollbar.set)
-
         self.labels_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
@@ -130,36 +131,47 @@ class RadarLabeler:
         self.root.bind("<l>", self.clear_last)
         self.root.bind("<L>", self.clear_last)
 
+    # --- Utility Functions ---
+    def set_dirty(self, state):
+        self.is_dirty = state
+        if self.is_dirty:
+            self.status_label.config(text="● Unsaved Changes", fg="red")
+        else:
+            self.status_label.config(text="● Saved", fg="green")
+
+    def check_unsaved(self):
+        if self.is_dirty:
+            return messagebox.askyesno("Unsaved Changes", "You have unsaved edits! Do you want to discard them and continue?")
+        return True
+
+    def get_selected_cat_id(self, val_str):
+        try:
+            return int(val_str.split(" - ")[0])
+        except:
+            return 1
+
     def load_folder(self):
-        # Added initialdir=os.getcwd() to open in the local code folder
-        folder_path = filedialog.askdirectory(
-            title="Select Folder with Images", 
-            initialdir=os.getcwd()
-        )
+        if not self.check_unsaved(): return
+        
+        folder_path = filedialog.askdirectory(title="Select Folder with Images", initialdir=os.getcwd())
         if not folder_path: return
         
-        # --- UPDATED: Load Categories Legend from 'name = id' format ---
         self.categories.clear()
         cat_file = os.path.join(folder_path, "categories.txt")
         if os.path.exists(cat_file):
             with open(cat_file, 'r') as f:
                 for line in f:
                     line = line.strip()
-                    # Skip empty lines or lines without an equals sign
-                    if not line or '=' not in line: 
-                        continue
-                    
-                    # Split the string at '=' and remove extra spaces
+                    if not line or '=' not in line: continue
                     parts = line.split('=')
                     cat_name = parts[0].strip()
-                    
                     try:
                         cat_id = int(parts[1].strip())
                         self.categories[cat_id] = cat_name
                     except ValueError:
                         print(f"Skipping invalid category line: {line}")
                         
-        self.update_legend_ui()
+        self.update_legend_and_dropdowns()
 
         valid_exts = {".png", ".jpg", ".jpeg"}
         self.image_list = sorted([
@@ -174,18 +186,22 @@ class RadarLabeler:
         self.current_idx = 0
         self.load_image_by_index()
 
-    def update_legend_ui(self):
+    def update_legend_and_dropdowns(self):
         for widget in self.legend_frame.winfo_children():
             widget.destroy()
             
         if not self.categories:
-            # Added fg="black" for dark mode compatibility
             tk.Label(self.legend_frame, text="No categories.txt found", fg="black", bg="#f0f0f0").pack(anchor=tk.W)
-            return
-            
-        for cid, name in self.categories.items():
-            # CHANGED "ID" to "C:" and added fg="black"
-            tk.Label(self.legend_frame, text=f"C:{cid} : {name}", fg="black", bg="#f0f0f0").pack(anchor=tk.W)
+            cat_list = ["1 - Default"]
+        else:
+            cat_list = []
+            for cid, name in self.categories.items():
+                tk.Label(self.legend_frame, text=f"C:{cid} : {name}", fg="black", bg="#f0f0f0").pack(anchor=tk.W)
+                cat_list.append(f"{cid} - {name}")
+                
+        self.category_combo['values'] = cat_list
+        if cat_list:
+            self.category_combo.current(0)
 
     def load_image_by_index(self):
         if not (0 <= self.current_idx < len(self.image_list)): return
@@ -204,6 +220,7 @@ class RadarLabeler:
         self.load_existing_json()
         self.redraw_canvas()
         self.refresh_sidebar_labels()
+        self.set_dirty(False) # Fresh image loaded, nothing is dirty yet
 
     def load_existing_json(self):
         json_path = os.path.splitext(self.image_path)[0] + ".json"
@@ -218,12 +235,9 @@ class RadarLabeler:
                 ann_id = ann.get("id", 1)
                 if ann_id > max_id:
                     max_id = ann_id
-                    
-                # We store only the raw unscaled logic in self.annotations
                 self.annotations.append(ann)
                 
             self.current_id = max_id + 1
-            print(f"Loaded existing annotations from {os.path.basename(json_path)}")
         except Exception as e:
             print(f"Error loading JSON: {e}")
 
@@ -243,7 +257,6 @@ class RadarLabeler:
             self.zoom_out()
 
     def get_raw_coords(self, event):
-        # Convert window coordinate to raw image coordinate using scale
         x = self.canvas.canvasx(event.x) / self.scale
         y = self.canvas.canvasy(event.y) / self.scale
         return x, y
@@ -253,7 +266,6 @@ class RadarLabeler:
         self.canvas.delete("all")
         if not self.image_path or not self.orig_img: return
 
-        # 1. Redraw scaled image
         new_w = max(1, int(self.img_width * self.scale))
         new_h = max(1, int(self.img_height * self.scale))
         resized_img = self.orig_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -262,7 +274,6 @@ class RadarLabeler:
         self.canvas.config(scrollregion=(0, 0, new_w, new_h))
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
 
-        # 2. Redraw scaled annotations
         for ann in self.annotations:
             cat_id = ann.get("category_id", 1)
             cat_name = self.categories.get(cat_id, f"C:{cat_id}")
@@ -280,7 +291,6 @@ class RadarLabeler:
                     self.canvas.create_polygon(scaled_pts, outline="yellow", fill="", width=2)
                     self.canvas.create_text(scaled_pts[0], scaled_pts[1]-10, text=f"{label_text} (Mask)", fill="yellow", anchor=tk.W)
 
-        # 3. Redraw temp polygon (if currently drawing)
         if self.current_polygon_points:
             scaled_pts = [p * self.scale for p in self.current_polygon_points]
             for i in range(0, len(scaled_pts), 2):
@@ -304,18 +314,17 @@ class RadarLabeler:
             if len(self.current_polygon_points) >= 6:
                 first_x, first_y = self.current_polygon_points[0], self.current_polygon_points[1]
                 dist = ((raw_x - first_x)**2 + (raw_y - first_y)**2) ** 0.5
-                if dist * self.scale <= 15: # Auto-close if clicked near start (scaled tolerance)
+                if dist * self.scale <= 15:
                     self.on_right_click(None)
                     return
 
             self.current_polygon_points.extend([raw_x, raw_y])
-            self.redraw_canvas() # redraws the temp polygon cleanly
+            self.redraw_canvas() 
 
     def on_drag(self, event):
         if not self.image_path or self.mode_var.get() != "bbox" or self.start_raw_x is None: return
         raw_x, raw_y = self.get_raw_coords(event)
         
-        # Update rect on screen with scaled coords
         sx, sy = self.start_raw_x * self.scale, self.start_raw_y * self.scale
         ex, ey = raw_x * self.scale, raw_y * self.scale
         self.canvas.coords(self.current_rect, sx, sy, ex, ey)
@@ -331,7 +340,7 @@ class RadarLabeler:
         if width > 5 and height > 5:
             self.annotations.append({
                 "id": self.current_id,
-                "category_id": self.class_id_var.get(),
+                "category_id": self.get_selected_cat_id(self.category_var.get()),
                 "xmin": int(xmin),
                 "ymin": int(ymin),
                 "width": int(width),
@@ -340,6 +349,7 @@ class RadarLabeler:
             })
             self.current_id += 1
             self.refresh_sidebar_labels()
+            self.set_dirty(True) # Change registered
             
         self.start_raw_x = None
         self.start_raw_y = None
@@ -349,7 +359,7 @@ class RadarLabeler:
         if self.mode_var.get() == "mask" and len(self.current_polygon_points) >= 6:
             self.annotations.append({
                 "id": self.current_id,
-                "category_id": self.class_id_var.get(),
+                "category_id": self.get_selected_cat_id(self.category_var.get()),
                 "segmentation": [self.current_polygon_points],
                 "type": "segmentation"
             })
@@ -357,22 +367,25 @@ class RadarLabeler:
             self.current_polygon_points = []
             self.refresh_sidebar_labels()
             self.redraw_canvas()
+            self.set_dirty(True) # Change registered
             
     def clear_last(self, event=None):
         if self.current_polygon_points:
             self.current_polygon_points = []
+            self.redraw_canvas()
         elif self.annotations:
             self.annotations.pop()
-            
-        self._update_current_id()
-        self.refresh_sidebar_labels()
-        self.redraw_canvas()
+            self._update_current_id()
+            self.refresh_sidebar_labels()
+            self.redraw_canvas()
+            self.set_dirty(True)
 
     def delete_annotation(self, ann_id):
         self.annotations = [a for a in self.annotations if a["id"] != ann_id]
         self._update_current_id()
         self.refresh_sidebar_labels()
         self.redraw_canvas()
+        self.set_dirty(True)
 
     def _update_current_id(self):
         if self.annotations:
@@ -380,22 +393,41 @@ class RadarLabeler:
         else:
             self.current_id = 1
 
+    # --- NEW: Sidebar Category Update ---
+    def on_sidebar_class_change(self, event, ann_id, var):
+        new_cat_id = self.get_selected_cat_id(var.get())
+        for ann in self.annotations:
+            if ann["id"] == ann_id:
+                if ann["category_id"] != new_cat_id:
+                    ann["category_id"] = new_cat_id
+                    self.set_dirty(True)
+                    self.redraw_canvas()
+                break
+
     def refresh_sidebar_labels(self):
         for widget in self.labels_inner_frame.winfo_children():
             widget.destroy()
+            
+        cat_list = [f"{k} - {v}" for k, v in self.categories.items()] if self.categories else ["1 - Default"]
             
         for ann in self.annotations:
             row = tk.Frame(self.labels_inner_frame, bg="#f0f0f0", pady=2)
             row.pack(fill=tk.X, padx=5)
             
             cat_id = ann.get("category_id", 1)
-            cat_name = self.categories.get(cat_id, "")
-            disp_name = f" [{cat_name}]" if cat_name else ""
+            cat_name = self.categories.get(cat_id, "Default")
             t = "Box" if ann.get("type") == "bbox" else "Mask"
             
-            # Added fg="black" so the text doesn't turn white in macOS dark mode
-            lbl = tk.Label(row, text=f"{t} ID:{ann['id']} C:{cat_id}{disp_name}", fg="black", bg="#f0f0f0", anchor=tk.W)
-            lbl.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            lbl = tk.Label(row, text=f"{t} {ann['id']}:", fg="black", bg="#f0f0f0", anchor=tk.W)
+            lbl.pack(side=tk.LEFT)
+            
+            # Dropdown for this specific annotation
+            c_var = tk.StringVar(value=f"{cat_id} - {cat_name}")
+            combo = ttk.Combobox(row, textvariable=c_var, values=cat_list, state="readonly", width=11)
+            combo.pack(side=tk.LEFT, padx=2)
+            
+            # Bind the change event
+            combo.bind("<<ComboboxSelected>>", lambda e, aid=ann['id'], cv=c_var: self.on_sidebar_class_change(e, aid, cv))
             
             btn = tk.Button(row, text=" X ", fg="red", highlightbackground="#ffcccc", font=("Arial", 10, "bold"), 
                             command=lambda id=ann['id']: self.delete_annotation(id))
@@ -403,11 +435,13 @@ class RadarLabeler:
 
     # --- Navigation & Saving ---
     def next_image(self, event=None):
+        if not self.check_unsaved(): return
         if self.current_idx < len(self.image_list) - 1:
             self.current_idx += 1
             self.load_image_by_index()
 
     def prev_image(self, event=None):
+        if not self.check_unsaved(): return
         if self.current_idx > 0:
             self.current_idx -= 1
             self.load_image_by_index()
@@ -425,7 +459,7 @@ class RadarLabeler:
                 "width": self.img_width,
                 "height": self.img_height
             },
-            "annotations": self.annotations # Stored directly since canvas_ids were removed
+            "annotations": self.annotations 
         }
         
         try:
@@ -433,6 +467,7 @@ class RadarLabeler:
             with open(save_path, 'w') as f:
                 json.dump(output_data, f, indent=4)
                 
+            self.set_dirty(False) # Successfully saved
             messagebox.showinfo("Save Successful", f"Saved to:\n{os.path.basename(save_path)}")
             
         except Exception as e:
@@ -440,12 +475,9 @@ class RadarLabeler:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    
-    # Attempt to maximize the window cross-platform
     try:
-        root.state('zoomed') # Works on Windows and most Linux environments
+        root.state('zoomed') 
     except tk.TclError:
-        # Fallback for macOS
         width = root.winfo_screenwidth()
         height = root.winfo_screenheight()
         root.geometry(f"{width}x{height}")

@@ -3,3 +3,8 @@ RealImages
 IMMAGINI
 *.pth
 debug_*
+YOLO_Dataset
+Inference_Results
+Inference_Results_YOLO
+runs
+*.pt

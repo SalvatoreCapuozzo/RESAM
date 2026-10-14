@@ -52,8 +52,10 @@ def run(cmd, log, min_mem, cwd=ROOT):
         killed = {"v": False}
 
         def guard():
+            low = 0
             while p.poll() is None:
-                if mem_available_mb() < min_mem:
+                low = low + 1 if mem_available_mb() < min_mem else 0
+                if low >= 3:  # ~6 s below the floor
                     killed["v"] = True
                     os.killpg(p.pid, signal.SIGKILL)
                     return
@@ -71,15 +73,31 @@ def run(cmd, log, min_mem, cwd=ROOT):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--only", nargs="*", default=None)
-    ap.add_argument("--min-mem-mb", type=int, default=300)
+    ap.add_argument("--min-mem-mb", type=int, default=250)
     args = ap.parse_args()
     os.makedirs(RES, exist_ok=True)
     os.makedirs(ENG, exist_ok=True)
     status_path = os.path.join(RES, "status.json")
     status = json.load(open(status_path)) if os.path.exists(status_path) else {}
 
+    for attempt in (1, 2):
+        if attempt == 2:
+            retry = [n for n, *_ in JOBS if any(v == "oom" for v in status.get(n, {}).values())]
+            if not retry:
+                break
+            print(f"\n##### retry pass for {retry}", flush=True)
+            for n in retry:
+                status[n] = {k: v for k, v in status[n].items() if v == "ok"}
+        run_jobs(args, status, status_path, attempt)
+    print("ALL_DONE", flush=True)
+
+
+def run_jobs(args, status, status_path, attempt):
     for name, model, data, task, extra in JOBS:
         if args.only and name not in args.only:
+            continue
+        if attempt == 2 and not any(v != "ok" for v in status.get(name, {"x": "pending"}).values()) \
+                and os.path.exists(os.path.join(RES, f"{name}_eval_visual.json")):
             continue
         st = status.setdefault(name, {})
         run_name = RUN_NAME.get(name, f"{name}_roi960_blocked")
@@ -124,7 +142,7 @@ def main():
             if not os.path.exists(local):
                 subprocess.run(["cp", best, local], check=True)
             st["export"] = run([PY, os.path.join(ROOT, "tools", "export_trt.py"), "--weights", local,
-                                "--imgsz", "960", "--precision", "fp16", "--out", engine], log, args.min_mem_mb, cwd=ENG)
+                                "--imgsz", "960", "--precision", "fp16", "--workspace", "1", "--out", engine], log, args.min_mem_mb, cwd=ENG)
             if not os.path.exists(engine):
                 print("   export failed", flush=True)
                 json.dump(status, open(status_path, "w"), indent=2)
@@ -142,7 +160,6 @@ def main():
                                              "--engine", spec, "--mapping", mapping, "--out", ev], log, args.min_mem_mb)
         json.dump(status, open(status_path, "w"), indent=2)
         print(f"   done {name}: {st}", flush=True)
-    print("ALL_DONE", flush=True)
 
 
 if __name__ == "__main__":

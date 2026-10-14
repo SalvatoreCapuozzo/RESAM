@@ -15,7 +15,8 @@
   },
   "yolo11s": {
     "train": "ok",
-    "val": "ok",
-    "export": "oom"
-  }
+    "val": "ok"
+  },
+  "yolov8s": {},
+  "yolo26s-seg": {}
 }

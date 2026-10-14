@@ -276,3 +276,4 @@ YOLO11s summary (fused): 101 layers, 9,415,122 parameters, 0 gradients, 21.3 GFL
               AIS Lost         24         54      0.595      0.681      0.628      0.169
 Speed: 1.6ms preprocess, 84.9ms inference, 0.0ms loss, 3.9ms postprocess per image
 [10/14/2026-17:59:55] [TRT] [W] onnx2trt_utils.cpp:375: Your ONNX model has been generated with INT64 weights, while TensorRT does not natively support INT64. Attempting to cast down to INT32.
+[10/14/2026-18:14:37] [TRT] [W] onnx2trt_utils.cpp:375: Your ONNX model has been generated with INT64 weights, while TensorRT does not natively support INT64. Attempting to cast down to INT32.

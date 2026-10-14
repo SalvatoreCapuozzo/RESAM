@@ -32,3 +32,16 @@ Model summary: 130 layers, 11,137,922 parameters, 11,137,906 gradients, 28.7 GFL
 Transferred 349/355 items from pretrained weights
 Freezing layer 'model.22.dfl.conv.weight'
 [34m[1mAMP: [0mrunning Automatic Mixed Precision (AMP) checks...
+[34m[1mAMP: [0mchecks passed ✅
+[34m[1mtrain: [0mFast image access ✅ (ping: 0.1±0.2 ms, read: 120.2±75.2 MB/s, size: 36.3 KB)
+[K[34m[1mtrain: [0mScanning /home/jetson/RESAM/YOLO_Dataset_v2/labels/train.cache... 372 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 372/372 19.0Mit/s 0.0s
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 135.9±108.0 MB/s, size: 51.5 KB)
+[K[34m[1mval: [0mScanning /home/jetson/RESAM/YOLO_Dataset_v2/labels/val.cache... 64 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 64/64 5.4Mit/s 0.0s
+[34m[1moptimizer:[0m 'optimizer=auto' found, ignoring 'lr0=0.01' and 'momentum=0.937' and determining best 'optimizer', 'lr0' and 'momentum' automatically... 
+[34m[1moptimizer:[0m AdamW(lr=0.001, momentum=0.9) with parameter groups 57 weight(decay=0.0), 64 weight(decay=0.0005), 63 bias(decay=0.0)
+Image sizes 960 train, 960 val
+Using 0 dataloader workers
+Logging results to [1m/home/jetson/RESAM/models/train/yolov8s_roi960_blocked[0m
+Starting training for 40 epochs...
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size

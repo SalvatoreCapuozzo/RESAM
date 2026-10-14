@@ -274,7 +274,7 @@ th{color:var(--muted);font-weight:500}.sw{display:inline-block;width:10px;height
 <span class="meta" id="src"></span><span class="meta" id="eng"></span></header>
 <div class="grid">
  <div class="card"><h2>Live frame <span class="meta" id="fname" style="text-transform:none;letter-spacing:0"></span></h2>
-  <img id="live" src="/stream.mjpg" alt="Annotated radar frame"></div>
+  <img id="live" alt="Annotated radar frame"></div>
  <div>
   <div class="card"><h2>Runtime</h2><div class="tiles">
    <div class="tile"><div class="k">Throughput</div><div class="v" id="fps">–</div><div class="s">frames / s</div></div>
@@ -330,8 +330,7 @@ for(const id of ['c1','c2','c3']){const c=$(id);
   const g=c.getContext('2d');spark(id,c._t,c._v,c._u,c._d);g.strokeStyle=css('--text2');g.lineWidth=1;g.beginPath();g.moveTo(c._X(i),0);g.lineTo(c._X(i),r.height);g.stroke();
   g.fillStyle=css('--series');g.strokeStyle=css('--surface');g.lineWidth=2;g.beginPath();g.arc(c._X(i),c._Y(y),4,0,7);g.fill();g.stroke();});
  c.addEventListener('mouseleave',()=>{$(c._t||'t1').style.display='none'});}
-async function tick(){
- try{const s=await (await fetch('/stats.json',{cache:'no-store'})).json();
+function apply(s){
   const st=s.status||'starting';$('status').textContent=st;$('sdot').style.background=st=='running'?css('--good'):st=='error'?css('--crit'):css('--warn');
   $('src').textContent=s.source||'';$('eng').textContent=s.engine?('engine: '+s.engine):'';$('fname').textContent=s.frame||'';
   const L=s.latency||{},T=L.total||{},I=L.infer||{},P=L.pre||{},Q=L.post||{},tel=s.telemetry||{};
@@ -350,9 +349,16 @@ async function tick(){
   if(lm){$('lp').textContent=f(lm.iou.P,3);$('lr').textContent=f(lm.iou.R,3);$('lpc').textContent=f(lm.center.Pd,3);$('lfa').textContent=f(lm.iou.FA_per_frame,2);
    $('lmm').textContent=`${lm.frames} labelled frames · mapping ${s.mapping} · conf ≥ ${s.conf}`;}
   $('err').textContent=s.error||'';
- }catch(e){$('status').textContent='disconnected';$('sdot').style.background=css('--crit')}
 }
-setInterval(tick,1000);tick();
+async function tick(){
+ try{apply(await (await fetch('/stats.json',{cache:'no-store'})).json());}
+ catch(e){$('status').textContent='disconnected';$('sdot').style.background=css('--crit')}
+}
+if(location.search.includes('snap')){
+ // still mode for headless screenshots: frame + stats loaded before the load event
+ $('live').src='/snapshot.jpg?t='+Date.now();
+ const x=new XMLHttpRequest();x.open('GET','/stats.json',false);x.send();apply(JSON.parse(x.responseText));
+}else{$('live').src='/stream.mjpg';setInterval(tick,1000);tick();}
 </script></body></html>"""
 
 

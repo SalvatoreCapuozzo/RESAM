@@ -406,6 +406,30 @@ def use_case_images(ms, conf=0.25, only=None):
 
 
 # ------------------------------------------------------------------------------ markdown
+def status_section():
+    import datetime
+    st = jload(os.path.join(COMP, "status.json")) or {}
+    order = ["yolo26s", "yolo26n", "yolo11s", "yolov8s", "yolo26s-seg", "yolo11s-seg", "yolo26s-p2", "rtdetr-l"]
+    log = os.path.join(ROOT, "models", "competitors.log")
+    all_done = os.path.exists(log) and "ALL_DONE" in open(log).read()
+    rows = ["| Competitor | Status |", "|---|---|"]
+    for k in order:
+        s = st.get(k, {})
+        if os.path.exists(os.path.join(COMP, f"{k}_eval_visual.json")):
+            state = "✅ done"
+        elif any(v not in ("ok",) for v in s.values()):
+            state = "⚠️ failed: " + ", ".join(f"{a}={b}" for a, b in s.items() if b != "ok")
+        elif s or k == next((o for o in order if not os.path.exists(os.path.join(COMP, f"{o}_eval_visual.json"))), None):
+            state = "⏳ running"
+        else:
+            state = "queued"
+        rows.append(f"| {k} | {state} |")
+    head = ("**Status: complete.**" if all_done else
+            "**Status: in progress** — this file is regenerated automatically each time a competitor finishes; "
+            "inference images are refreshed at the end.")
+    return "\n".join([f"> {head} Last update {datetime.datetime.now():%Y-%m-%d %H:%M}.", "", *rows])
+
+
 def det_table(ms):
     rows = ["| Model | Params (M) | mAP50 ↑ | mAP50 (ultralytics val) | mAP50-95 | AP50 tiny <16 px | AP50 small 16–32 px "
             "| Pd centre-hit | False alarms / frame | FPS ↑ | p50 / p95 ms | Power W | mJ / frame |",
@@ -469,12 +493,17 @@ def main():
         chart_heatmap([r["label"] for r in segs], cls6,
                       [[g(r["val"], "mask_per_class_map50", n) for n in cls6] for r in segs],
                       "Mask AP50 per class", os.path.join(IMG, "seg_per_class.png"))
-    uc, counts = ({}, {}) if args.no_images else use_case_images(ms, only=args.image_models)
+    if args.no_images:
+        uc = {k: os.path.join(IMG, f"uc_{k}.jpg") for k, *_ in USE_CASES if os.path.exists(os.path.join(IMG, f"uc_{k}.jpg"))}
+        counts = {}
+    else:
+        uc, counts = use_case_images(ms, only=args.image_models)
 
     rel = lambda p: os.path.relpath(p, os.path.dirname(OUT_MD))  # noqa: E731
     md = [
         "# RESAM competitor benchmark — Jetson Orin Nano", "",
         notes.get("intro", ""), "",
+        status_section(), "",
         "## Protocol", "",
         "* **Same data for every model**: `MasterSplits/splits_blocked.json` — leakage-free blocked-temporal split "
         "(372 train / 64 val / 80 test frames, 0 test frames with a train neighbour within 31 s), radar-ring ROI crop, "
@@ -520,6 +549,19 @@ def main():
             md += [f"![{title}]({rel(uc[key])})", ""]
         if notes.get(f"uc_{key}"):
             md += [notes[f"uc_{key}"], ""]
+    shots = [("coast_orange", "Coastal approach, orange console"), ("clutter_green", "Sea clutter, green console"),
+             ("traffic_orange", "Traffic, orange console"), ("open_sea_orange", "Open sea, 6 NM")]
+    shots = [(k, t) for k, t in shots if os.path.exists(os.path.join(ROOT, "docs", "img", "dashboard", f"dashboard_{k}.png"))]
+    if shots:
+        md += ["## Live dashboard on this Jetson", "",
+               "`tools/dashboard.py` running YOLO26s INT8-mixed on the Orin Nano, replaying **test-split** frames at "
+               "1 fps (`tools/dashboard_screenshots.sh`): annotated live frame, runtime tiles (throughput, latency "
+               "percentiles, board power, GPU, RAM), latency / power / detection-count history, per-class counts, "
+               "sweep-to-sweep tracks and running accuracy against the labels next to the frames.", ""]
+        for k, t in shots:
+            md += [f"### {t}", "", f"![{t}](img/dashboard/dashboard_{k}.png)", ""]
+        if notes.get("dashboard"):
+            md += [notes["dashboard"], ""]
     md += ["## Recommendation", "", notes.get("recommendation", ""), "",
            "## Reproduce", "", "```bash",
            ".venv/bin/python tools/run_competitors.py            # train + val + TensorRT + benchmark + eval (resumable)",

@@ -2,6 +2,19 @@
 
 
 
+> **Status: in progress** — this file is regenerated automatically each time a competitor finishes; inference images are refreshed at the end. Last update 2026-10-14 18:10.
+
+| Competitor | Status |
+|---|---|
+| yolo26s | ✅ done |
+| yolo26n | ✅ done |
+| yolo11s | ⏳ running |
+| yolov8s | queued |
+| yolo26s-seg | queued |
+| yolo11s-seg | queued |
+| yolo26s-p2 | queued |
+| rtdetr-l | queued |
+
 ## Protocol
 
 * **Same data for every model**: `MasterSplits/splits_blocked.json` — leakage-free blocked-temporal split (372 train / 64 val / 80 test frames, 0 test frames with a train neighbour within 31 s), radar-ring ROI crop, colour input, original 6 classes.
@@ -19,7 +32,9 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | YOLO26s INT8-mixed | – | **0.665** | – | 0.308 | 0.323 | 0.506 | 0.499 | 1.6 | **28.8** | 34.0 / 39.6 | 9.0 | 311.7 |
 | YOLO26s FP16 | 9.5 | **0.641** | 0.652 | 0.304 | 0.349 | 0.540 | 0.504 | 1.8 | **23.9** | 39.7 / 47.9 | 10.4 | 435.5 |
+| YOLO26n FP16 | 2.4 | **0.548** | 0.544 | 0.263 | 0.319 | 0.378 | 0.336 | 1.4 | **35.5** | 26.3 / 34.9 | 9.2 | 258.4 |
 | Classical echo blobs | – | **0.077** | – | 0.033 | 0.000 | 0.000 | 0.082 | 9.4 | **146.9** | 6.5 / 8.4 | 7.3 | 49.8 |
+| YOLO11s FP16 | 9.4 | **–** | 0.645 | – | – | – | – | – | **–** | – / – | – | – |
 
 
 

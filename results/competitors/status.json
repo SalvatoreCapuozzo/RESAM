@@ -12,5 +12,10 @@
     "bench": "ok",
     "eval_original": "ok",
     "eval_visual": "ok"
+  },
+  "yolo11s": {
+    "train": "ok",
+    "val": "ok",
+    "export": "oom"
   }
 }

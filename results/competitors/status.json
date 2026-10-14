@@ -1,0 +1,16 @@
+{
+  "yolo26s": {
+    "val": "ok",
+    "bench": "ok",
+    "eval_original": "ok",
+    "eval_visual": "ok"
+  },
+  "yolo26n": {
+    "train": "ok",
+    "val": "ok",
+    "export": "ok",
+    "bench": "ok",
+    "eval_original": "ok",
+    "eval_visual": "ok"
+  }
+}

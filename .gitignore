@@ -8,3 +8,9 @@ Inference_Results
 Inference_Results_YOLO
 runs
 *.pt
+.venv/
+YOLO_Dataset_v2
+models/
+results/*.json
+YOLO_Dataset_v2_seg
+*.pyc

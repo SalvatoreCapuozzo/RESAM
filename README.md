@@ -98,3 +98,48 @@ In upcoming iterations, RESAM will integrate the **Segment Anything Model 2 (SAM
 
 ### 2. YOLO26 Bounding Box Detection
 To optimize performance on specific dataset subsets, a dedicated **YOLO26** training pipeline will be introduced. This pipeline will exclusively target elements in the dataset annotated with bounding boxes. By leveraging YOLO26's native NMS-free end-to-end architecture and edge-optimized inference capabilities, this will provide a high-speed, detection-focused alternative to the Mask2Former segmentation approach.
+---
+
+## Edge Deployment Toolkit (Jetson Orin Nano)
+
+The `resam/` package and `tools/` scripts turn the notebook pipeline into something that
+runs, is measured, and can be watched live on the target board. The full technical review
+(what is wrong, what to change, measured numbers) is in [docs/ANALYSIS.md](docs/ANALYSIS.md).
+
+### Layout
+| Path | Purpose |
+|---|---|
+| `resam/config.py` | classes, logical mappings (`original`, `mapping_1`, `mapping_2`, `visual`), measured display profiles |
+| `resam/geometry.py` | radar-ring ROI (measured / auto-fitted), crop & mask, pixel ↔ lat/lon |
+| `resam/annotations.py` | label loading + validation, size-ordered rasterisation, bbox → echo pseudo-masks, YOLO exporters |
+| `resam/echo.py` | colour-based echo extraction + classical blob detector (baseline) |
+| `resam/splits.py` | leakage-aware splits (blocked-temporal / session hold-out, de-duplication) |
+| `resam/metrics.py` | COCO AP + size buckets, Pd / false alarms, confusion, pixel IoU/Dice/boundary-F1, latency stats |
+| `resam/engines/` | TensorRT, ultralytics, Mask2Former and classical backends behind one interface |
+| `resam/sources.py` | folder replay, watched folder, HDMI capture, RTSP/UDP (HW decode) frame sources |
+| `resam/tracking.py` | sweep-to-sweep tracker (persistence filter for clutter, class voting) |
+| `resam/telemetry.py` | jtop / tegrastats power, GPU, RAM, temperature (no sudo) |
+| `tools/audit_dataset.py` | dataset audit (invalid labels, collisions, duplicates, leakage, class content) |
+| `tools/make_splits.py` | create / check splits |
+| `tools/build_yolo_dataset.py` | fixed YOLO det/seg dataset builder |
+| `tools/export_trt.py` | `.pt` → ONNX → TensorRT FP16/INT8 (radar-frame calibration) |
+| `tools/evaluate.py` | full metric suite on a split, `--compare` for side-by-side tables |
+| `tools/benchmark.py` | latency percentiles, FPS, board power and mJ/frame per backend |
+| `tools/dashboard.py` | real-time web dashboard (folder / HDMI / Ethernet input) |
+
+### Quick start on the Jetson
+```bash
+bash tools/setup_jetson_env.sh                       # .venv on top of dl_env (torch 2.0 + CUDA)
+.venv/bin/python tools/audit_dataset.py
+.venv/bin/python tools/make_splits.py --strategy blocked --gap 2 --block 12 --out MasterSplits/splits_blocked.json
+.venv/bin/python tools/build_yolo_dataset.py --splits MasterSplits/splits_blocked.json --out YOLO_Dataset_v2
+# train (on the laptop GPU, or on the Nano with batch<=2, workers=0 - see docs/ANALYSIS.md), then:
+.venv/bin/python tools/export_trt.py --weights best.pt --imgsz 960 --precision int8   # MinMax calibration + FP16 head
+.venv/bin/python tools/evaluate.py --engine trt:best_int8_960.engine@crop=roi --mapping visual
+.venv/bin/python tools/dashboard.py --source "IMMAGINI/Cartour delta 1.30/202109150130" --fps 2 --loop \
+    --engine trt:best_int8_960.engine@crop=roi --show-gt        # open http://<jetson-ip>:8080
+```
+Live inputs: `--source "hdmi:/dev/video0?w=1280&h=1024&fps=30"` (USB/CSI HDMI capture card),
+`--source "rtsp://<ip>/stream?w=1280&h=1024"` or `"udp://:5000?w=1280&h=1024"` (Ethernet video,
+NVDEC hardware decode), `--source watch:/mnt/radar_share` (frames dropped on a network share).
+Use `--change-threshold 0.5` with 30 fps capture so only changed radar pictures are processed.

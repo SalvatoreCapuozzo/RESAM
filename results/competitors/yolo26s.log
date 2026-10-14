@@ -1,0 +1,77 @@
+Ultralytics 8.4.46 🚀 Python-3.8.19 torch-2.0.0+nv23.05 CUDA:0 (Orin, 7337MiB)
+YOLO26s summary (fused): 122 layers, 9,467,502 parameters, 0 gradients, 20.5 GFLOPs
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 160.7±82.4 MB/s, size: 57.8 KB)
+[K[34m[1mval: [0mScanning /home/jetson/RESAM/YOLO_Dataset_v2/labels/test.cache... 80 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 80/80 5.5Mit/s 0.0s
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 2% ──────────── 1/40 3.2s/it 1.0s<2:04[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 5% ╸─────────── 2/40 1.3it/s 1.2s<30.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 8% ╸─────────── 3/40 2.0it/s 1.5s<18.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 10% ━─────────── 4/40 2.5it/s 1.8s<14.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 12% ━─────────── 5/40 2.9it/s 2.0s<12.1s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 15% ━╸────────── 6/40 3.1it/s 2.3s<10.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 18% ━━────────── 7/40 3.2it/s 2.6s<10.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 20% ━━────────── 8/40 3.4it/s 2.9s<9.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 22% ━━╸───────── 9/40 3.5it/s 3.1s<8.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 25% ━━━───────── 10/40 3.6it/s 3.4s<8.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 28% ━━━───────── 11/40 3.6it/s 3.7s<8.0s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 30% ━━━╸──────── 12/40 3.7it/s 3.9s<7.6s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 32% ━━━╸──────── 13/40 3.8it/s 4.2s<7.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 35% ━━━━──────── 14/40 3.8it/s 4.4s<6.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 38% ━━━━──────── 15/40 3.8it/s 4.7s<6.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 40% ━━━━╸─────── 16/40 3.8it/s 5.0s<6.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 42% ━━━━━─────── 17/40 3.9it/s 5.2s<5.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 45% ━━━━━─────── 18/40 3.8it/s 5.5s<5.7s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 48% ━━━━━╸────── 19/40 3.8it/s 5.7s<5.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 50% ━━━━━━────── 20/40 3.8it/s 6.0s<5.3s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 52% ━━━━━━────── 21/40 3.6it/s 6.3s<5.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 55% ━━━━━━╸───── 22/40 3.6it/s 6.6s<5.0s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 57% ━━━━━━╸───── 23/40 3.7it/s 6.8s<4.6s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 60% ━━━━━━━───── 24/40 3.7it/s 7.1s<4.3s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 62% ━━━━━━━───── 25/40 3.7it/s 7.4s<4.1s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 65% ━━━━━━━╸──── 26/40 3.7it/s 7.7s<3.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 68% ━━━━━━━━──── 27/40 3.7it/s 7.9s<3.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 70% ━━━━━━━━──── 28/40 3.8it/s 8.2s<3.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 72% ━━━━━━━━╸─── 29/40 3.7it/s 8.5s<3.0s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 75% ━━━━━━━━━─── 30/40 3.7it/s 8.7s<2.7s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 78% ━━━━━━━━━─── 31/40 3.7it/s 9.0s<2.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 80% ━━━━━━━━━╸── 32/40 3.7it/s 9.3s<2.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 82% ━━━━━━━━━╸── 33/40 3.6it/s 9.6s<1.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 85% ━━━━━━━━━━── 34/40 3.7it/s 9.8s<1.6s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 88% ━━━━━━━━━━── 35/40 3.7it/s 10.1s<1.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 90% ━━━━━━━━━━╸─ 36/40 3.7it/s 10.4s<1.1s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 92% ━━━━━━━━━━━─ 37/40 3.7it/s 10.6s<0.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 95% ━━━━━━━━━━━─ 38/40 3.7it/s 10.9s<0.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 98% ━━━━━━━━━━━╸ 39/40 3.7it/s 11.2s<0.3s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 40/40 3.5it/s 11.5s
+                   all         80        678      0.581      0.702      0.652      0.304
+                  Ship         52         92      0.542       0.62      0.588      0.215
+                 Noise         47        321      0.488      0.265      0.367      0.123
+           Unknown TGT         32         75      0.488       0.68      0.581      0.265
+            Coast/Port         40         59      0.817      0.932      0.947      0.684
+               My Ship         77         77      0.698      0.974      0.936      0.398
+              AIS Lost         24         54      0.451      0.741      0.491      0.141
+Speed: 1.6ms preprocess, 98.9ms inference, 0.0ms loss, 1.2ms postprocess per image
+== trt:models/engines/yolo26s_roi960_fp16.engine@crop=roi
+[10/14/2026-15:10:55] [TRT] [W] Using an engine plan file across different models of devices is not recommended and is likely to affect performance or even cause errors.
+   23.9 FPS | p50 39.7 ms p95 47.9 ms | 10.43 W | 435 mJ/frame
+| engine | FPS | total p50 / p95 ms | infer p50 ms | pre / post p50 ms | power W | mJ / frame |
+|---|---|---|---|---|---|---|
+| trt:models/engines/yolo26s_roi960_fp16.engine@crop=roi | 23.9 | 39.7 / 47.9 | 24.1 | 11.1 / 3.4 | 10.43 | 435 |
+
+Idle board power: 6.08 W
+[10/14/2026-15:11:12] [TRT] [W] Using an engine plan file across different models of devices is not recommended and is likely to affect performance or even cause errors.
+  20/80
+  40/80
+  60/80
+  80/80
+### trt:models/engines/yolo26s_roi960_fp16.engine@crop=roi — MasterSplits/splits_blocked.json [test], mapping `original`
+
+mAP50 **0.641** · mAP50-95 0.304 · mAP50 tiny/small/medium/large 0.349/0.540/0.741/0.678 · class-agnostic AP50 0.570 · best F1 0.544 @conf 0.15 · latency p50 39.7 ms
+
+| class | n_gt | AP50 | AP50-95 | AP50 tiny | AP50 small | P | R (Pd) | FA/frame | Pd centre-hit |
+|---|---|---|---|---|---|---|---|---|---|
+| Ship | 92 | 0.569 | 0.219 | 0.369 | 0.535 | 0.676 | 0.522 | 0.29 | 0.652 |
+| Noise | 339 | 0.368 | 0.122 | 0.388 | 0.429 | 0.573 | 0.139 | 0.44 | 0.209 |
+| Unknown TGT | 77 | 0.566 | 0.266 | 0.289 | 0.556 | 0.592 | 0.545 | 0.36 | 0.662 |
+| Coast/Port | 59 | 0.935 | 0.678 | – | 0.167 | 0.898 | 0.898 | 0.07 | 0.915 |
+| My Ship | 77 | 0.935 | 0.397 | – | 1.000 | 0.777 | 0.948 | 0.26 | 0.948 |
+| AIS Lost | 55 | 0.475 | 0.143 | – | 0.554 | 0.475 | 0.509 | 0.39 | 0.782 |
+
+Confusion (rows = GT, cols = prediction, IoU ≥ 0.5):
+
+| GT \ pred | Ship | Noise | Unknown TGT | Coast/Port | My Ship | AIS Lost | missed |
+|---|---|---|---|---|---|---|---|
+| Ship | 48 | 0 | 0 | 0 | 0 | 0 | 44 |
+| Noise | 0 | 47 | 1 | 0 | 0 | 0 | 291 |
+| Unknown TGT | 0 | 0 | 42 | 0 | 0 | 0 | 35 |
+| Coast/Port | 0 | 0 | 0 | 53 | 0 | 0 | 6 |
+| My Ship | 0 | 0 | 0 | 0 | 73 | 0 | 4 |
+| AIS Lost | 0 | 0 | 0 | 0 | 0 | 28 | 27 |
+| background | 23 | 35 | 28 | 6 | 21 | 31 | 0 |
+-> /home/jetson/RESAM/results/competitors/yolo26s_eval_original.json
+[10/14/2026-15:12:23] [TRT] [W] Using an engine plan file across different models of devices is not recommended and is likely to affect performance or even cause errors.
+  20/80
+  40/80
+  60/80
+  80/80
+### trt:models/engines/yolo26s_roi960_fp16.engine@crop=roi — MasterSplits/splits_blocked.json [test], mapping `visual`
+
+mAP50 **0.696** · mAP50-95 0.353 · mAP50 tiny/small/medium/large 0.349/0.531/0.766/0.678 · class-agnostic AP50 0.570 · best F1 0.544 @conf 0.15 · latency p50 41.2 ms
+
+| class | n_gt | AP50 | AP50-95 | AP50 tiny | AP50 small | P | R (Pd) | FA/frame | Pd centre-hit |
+|---|---|---|---|---|---|---|---|---|---|
+| Target | 224 | 0.545 | 0.214 | 0.310 | 0.530 | 0.587 | 0.527 | 1.04 | 0.688 |
+| Clutter | 339 | 0.368 | 0.122 | 0.388 | 0.429 | 0.573 | 0.139 | 0.44 | 0.209 |
+| Land | 59 | 0.935 | 0.678 | – | 0.167 | 0.898 | 0.898 | 0.07 | 0.915 |
+| Own Ship | 77 | 0.935 | 0.397 | – | 1.000 | 0.777 | 0.948 | 0.26 | 0.948 |
+
+Confusion (rows = GT, cols = prediction, IoU ≥ 0.5):
+
+| GT \ pred | Target | Clutter | Land | Own Ship | missed |
+|---|---|---|---|---|---|
+| Target | 118 | 0 | 0 | 0 | 106 |
+| Clutter | 1 | 47 | 0 | 0 | 291 |
+| Land | 0 | 0 | 53 | 0 | 6 |
+| Own Ship | 0 | 0 | 0 | 73 | 4 |
+| background | 82 | 35 | 6 | 21 | 0 |
+-> /home/jetson/RESAM/results/competitors/yolo26s_eval_visual.json
